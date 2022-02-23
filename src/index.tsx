@@ -20,3 +20,19 @@ const TranstrackerLibrary = NativeModules.TranstrackerLibrary
 export function multiply(a: number, b: number): Promise<number> {
   return TranstrackerLibrary.multiply(a, b);
 }
+
+export function initiateService(imei: string): void {
+  return TranstrackerLibrary.initiateService(imei);
+}
+
+export function startService(error: Function): void {
+  return TranstrackerLibrary.startService(error);
+}
+
+export function stopService(error: Function): void {
+  return TranstrackerLibrary.stopService(error);
+}
+
+export function getLatestLocation(error: Function, success: Function): void {
+  return TranstrackerLibrary.getLatestLocation(error, success);
+}
