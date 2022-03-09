@@ -1,4 +1,4 @@
-import { NativeModules, Platform } from 'react-native';
+import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 
 const LINKING_ERROR =
   `The package 'react-native-transtracker-library' doesn't seem to be linked. Make sure: \n\n` +
@@ -17,6 +17,9 @@ const TranstrackerLibrary = NativeModules.TranstrackerLibrary
       }
     );
 
+
+export const trackerEmitter = new NativeEventEmitter(TranstrackerLibrary);
+
 export function multiply(a: number, b: number): Promise<number> {
   return TranstrackerLibrary.multiply(a, b);
 }
@@ -33,6 +36,7 @@ export function stopService(error: Function): void {
   return TranstrackerLibrary.stopService(error);
 }
 
-export function getLatestLocation(error: Function, success: Function): void {
-  return TranstrackerLibrary.getLatestLocation(error, success);
-}
+// export function getLatestLocation(error: Function, success: Function): void {
+//   return TranstrackerLibrary.getLatestLocation(error, success);
+// }
+

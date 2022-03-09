@@ -5,43 +5,18 @@ import {
   View,
   Button,
   Text,
-  PermissionsAndroid,
-  DeviceEventEmitter,
+  Platform
 } from 'react-native';
 
-import { initiateService, startService, stopService } from 'react-native-transtracker-library';
-
-const grantPermission = async () => {
-  try {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      {
-        title: 'Location Permission',
-        message: 'We needs access to your location',
-        buttonNeutral: 'Ask Me Later',
-        buttonNegative: 'Cancel',
-        buttonPositive: 'OK',
-      }
-    );
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      console.log('You can use the location');
-      return true;
-    } else {
-      console.log('Location permission denied');
-    }
-  } catch (err) {
-    console.warn(err);
-  }
-
-  return false;
-};
+import {request, RESULTS, PERMISSIONS} from 'react-native-permissions';
+import { trackerEmitter, initiateService, startService, stopService } from 'react-native-transtracker-library';
 
 export default function App() {
   const [statusLocationService, setStatusLocationService] = React.useState<string>('not initiated');
   const [location, setLocation] = React.useState();
 
   React.useEffect(() => {
-    DeviceEventEmitter.addListener('onLocationChanged', function (e) {
+    trackerEmitter.addListener('onLocationChanged', function (e) {
       console.log(e);
       setLocation(e);
     });
@@ -51,21 +26,53 @@ export default function App() {
     <View style={styles.container}>
       <Button
         title={statusLocationService}
-        onPress={async () => {
+        onPress={ () => {
           if (statusLocationService === 'not initiated') {
-            var isGranted = await grantPermission();
-            if(isGranted) {
-              initiateService('zein');
-              setStatusLocationService('initiated');
+            if(Platform.OS === 'ios') {
+              request(PERMISSIONS.IOS.LOCATION_ALWAYS).then((result) => {
+                switch (result) {
+                  case RESULTS.LIMITED:
+                    console.log('The permission is limited: some actions are possible');
+                    break;
+                  case RESULTS.GRANTED:
+                    console.log('The permission is granted');
+
+                    initiateService('zein');
+                    setStatusLocationService('initiated');
+                    break;
+                }
+              });
+            }
+
+            else if(Platform.OS === 'android') {
+              request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION).then((result) => {
+                switch (result) {
+                  case RESULTS.LIMITED:
+                    console.log('The permission is limited: some actions are possible');
+                    break;
+                  case RESULTS.GRANTED:
+                    console.log('The permission is granted');
+
+                    initiateService('zein');
+                    setStatusLocationService('initiated');
+                    break;
+                }
+              });
             }
           } else if (statusLocationService === 'initiated') {
-            startService(() => {});
+            startService((err: any, data: any) => {
+              console.log(err, data);
+            });
             setStatusLocationService('started');
           } else if (statusLocationService === 'started') {
-            stopService(() => {});
+            stopService((err: any, data: any) => {
+              console.log(err, data);
+            });
             setStatusLocationService('stopped');
           } else if (statusLocationService === 'stopped') {
-            startService(() => {});
+            startService((err: any, data: any) => {
+              console.log(err, data);
+            });
             setStatusLocationService('started');
           }
         }}
