@@ -11,11 +11,17 @@ npm install react-native-transtracker-library
 ## Usage
 
 ```js
-import { multiply } from "react-native-transtracker-library";
+// Import service
+import { trackerEmitter, initiateService, startService, stopService } from 'react-native-transtracker-library';
 
-// ...
+// Received event from native
+trackerEmitter.addListener('onLocationChanged', function (e) {
+    setLocation(e);
+});
 
-const result = await multiply(3, 7);
+// Initiate service location before initiate try to check permission location
+// PARAM1: imei / code unique of the device
+initiateService('code');
 ```
 
 ## Contributing
