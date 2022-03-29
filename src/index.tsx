@@ -24,8 +24,8 @@ export function multiply(a: number, b: number): Promise<number> {
   return TranstrackerLibrary.multiply(a, b);
 }
 
-export function initiateService(imei: string): void {
-  return TranstrackerLibrary.initiateService(imei);
+export function initiateService(apiKey:string, externalId:string, imei: string): void {
+  return TranstrackerLibrary.initiateService(apiKey, externalId, imei);
 }
 
 export function startService(error: Function): void {

@@ -14,6 +14,11 @@ import { trackerEmitter, initiateService, startService, stopService } from 'reac
 export default function App() {
   const [statusLocationService, setStatusLocationService] = React.useState<string>('not initiated');
   const [location, setLocation] = React.useState();
+  
+  const randomId = Math.floor(Math.random() * 1000000);
+  const apiKey = 'eyJpdiI6Imd1UTA0WXJPOG4zZVZxY21HNEVIWEE9PSIsInZhbHVlIjoiSHQrZFVIZllmV3I0QmhLMjJBZzlaSXVhazJoSkdaaUNoaUV5YmNCQktJRkt0Ui9WUHdlZHpKa2paQTVpWmZmMSIsIm1hYyI6ImVkNTM0N2E1NDc2YzI2ZWI5NjU3ZjNjOGZmYjA2ZDI3OTVkYmU4NzA3NDRhMjdjYzU2ZGViNjBlMjY3ZTFiOWIiLCJ0YWciOiIifQ==';
+  const externalId = 'user_id' + randomId;
+  const imei = 'test' + randomId;
 
   React.useEffect(() => {
     trackerEmitter.addListener('onLocationChanged', function (e) {
@@ -37,7 +42,7 @@ export default function App() {
                   case RESULTS.GRANTED:
                     console.log('The permission is granted');
 
-                    initiateService('zein');
+                    initiateService(apiKey, externalId, imei);
                     setStatusLocationService('initiated');
                     break;
                 }
@@ -53,7 +58,7 @@ export default function App() {
                   case RESULTS.GRANTED:
                     console.log('The permission is granted');
 
-                    initiateService('zein');
+                    initiateService(apiKey, externalId, imei);
                     setStatusLocationService('initiated');
                     break;
                 }

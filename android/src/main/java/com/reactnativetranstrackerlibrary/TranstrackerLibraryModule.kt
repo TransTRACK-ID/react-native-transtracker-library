@@ -49,12 +49,12 @@ class TranstrackerLibraryModule(reactContext: ReactApplicationContext) : ReactCo
 
 
     @ReactMethod
-    fun initiateService(imei: String) {
+    fun initiateService(apiKey:String, externalId:String, imei: String) {
       if (locationTrackerService != null) {
         Log.d(name, "Already running")
         return
       }
-      locationTrackerService = LocationTrackerService(_reactContext, imei, this)
+      locationTrackerService = LocationTrackerService(_reactContext, apiKey, externalId, imei, this)
       Log.d(name, "Initiated with name: $imei")
     }
 

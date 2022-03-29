@@ -7,9 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import com.android.volley.DefaultRetryPolicy
-import com.android.volley.Request
-import com.android.volley.RequestQueue
+import com.android.volley.*
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.google.android.gms.location.*
@@ -17,10 +15,10 @@ import java.io.UnsupportedEncodingException
 import java.lang.System.currentTimeMillis
 
 
-class LocationTrackerService(context: Context, imei: String, contract: LocationTrackerContract){
+class LocationTrackerService(context: Context, apiKey: String, externalId: String, imei: String, contract: LocationTrackerContract){
 
     private var tag = "LocationService"
-    private val apiMirror = "http://telematics.transtrack.id:6055"
+    private val apiMirror = "https://transtracker-test.transtrack.id/api/send-telematic"
 
     private var fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
     private var locationContract: LocationTrackerContract = contract
@@ -41,14 +39,13 @@ class LocationTrackerService(context: Context, imei: String, contract: LocationT
                         "&odometer=&" +
                         "bearing=${lastLocation.bearing}" +
                         "&lon=${lastLocation.longitude}" +
-                        "&id=$imei" +
                         "&hdop=1" +
                         "&ignition=true" +
                         "&lat=${lastLocation.latitude}" +
                         "&speed=${lastLocation.speed}" +
                         "&timestamp=${currentTimeMillis()}"
 
-            val stringRequest = StringRequest(
+            val stringRequest = object: StringRequest(
                 Request.Method.POST, apiWithParams,
                 { response ->
                     Log.v(tag, "Response: ${response.toString()}")
@@ -64,7 +61,24 @@ class LocationTrackerService(context: Context, imei: String, contract: LocationT
                     }else{
                         Log.e(tag, e.toString())
                     }
-                })
+                },
+            ) {
+              override fun getHeaders(): MutableMap<String, String> {
+                val headers = HashMap<String, String>()
+                Log.d("tag", "API Key: $apiKey");
+                Log.d("tag", "External ID: $externalId");
+                Log.d("tag", "Tracker ID: $imei");
+
+                headers["X-Api-Key"] = apiKey
+                headers["X-External-Id"] = externalId;
+                headers["X-Tracker-Id"] = imei;
+                return headers
+              }
+            };
+
+
+
+
             stringRequest.retryPolicy = DefaultRetryPolicy(
                 5000,
                 0,
