@@ -4,11 +4,6 @@ import CoreLocation
 @objc(TranstrackerLibrary)
 class TranstrackerLibrary: RCTEventEmitter, CLLocationManagerDelegate {
 
-    @objc(multiply:withB:withResolver:withRejecter:)
-    func multiply(a: Float, b: Float, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
-        resolve(a*b)
-    }
-
     let locationManager = CLLocationManager()
     var apiKeyUser: String = "";
     var externalIdUser: String = "";
@@ -22,11 +17,11 @@ class TranstrackerLibrary: RCTEventEmitter, CLLocationManagerDelegate {
 
     @objc(initiateService:withExternalId:withImei:)
     func initiateService(apiKey: String, externalId: String, imei: String) {
-        
+
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.allowsBackgroundLocationUpdates = true
-        
+
         apiKeyUser = apiKey
         externalIdUser = externalId
         imeiUser = imei
@@ -76,8 +71,8 @@ class TranstrackerLibrary: RCTEventEmitter, CLLocationManagerDelegate {
         let apiWithParams =
             apiMirror +
             "altitude=\(location.altitude)" +
-            "&odometer=&" +
-            "bearing=\(self.heading)" +
+            "&odometer=" +
+            "&bearing=\(self.heading)" +
             "&lon=\(coordinate.longitude)" +
             "&id=\(self.imeiUser)" +
             "&hdop=1" +
@@ -86,22 +81,25 @@ class TranstrackerLibrary: RCTEventEmitter, CLLocationManagerDelegate {
             "&speed=\(location.speed)" +
             "&timestamp=\(Date().millisecondsSince1970)"
 
-        let url = URL(apiWithParams)
-        let request = URLRequest(url: url)
-        request.setValue("X-Api-Key", forHTTPHeaderField: apiKeyUser)
-        request.setValue("X-External-Id", forHTTPHeaderField: externalIdUser)
-        request.setValue("X-Tracker-Id", forHTTPHeaderField: imeiUser)
+        let url = URL(string: apiWithParams)
+        var request = URLRequest(url: url!)
+        request.httpMethod = "POST"
 
+        request.addValue(apiKeyUser, forHTTPHeaderField: "X-Api-Key")
+        request.addValue(externalIdUser, forHTTPHeaderField: "X-External-Id")
+        request.addValue(imeiUser, forHTTPHeaderField: "X-Tracker-Id")
 
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, error == nil else {
                 print("error=\(String(describing: error))")
                 return
             }
 
+            print("request = \(String(describing: request))")
+
             if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
                 print("statusCode should be 200, but is \(httpStatus.statusCode)")
-                print("response = \(String(describing: response))")
+                // print("response = \(String(describing: response))")
             }
 
             let responseString = String(data: data, encoding: .utf8)

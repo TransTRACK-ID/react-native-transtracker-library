@@ -20,10 +20,6 @@ const TranstrackerLibrary = NativeModules.TranstrackerLibrary
 
 export const trackerEmitter = new NativeEventEmitter(TranstrackerLibrary);
 
-export function multiply(a: number, b: number): Promise<number> {
-  return TranstrackerLibrary.multiply(a, b);
-}
-
 export function initiateService(apiKey:string, externalId:string, imei: string): void {
   return TranstrackerLibrary.initiateService(apiKey, externalId, imei);
 }

@@ -36,8 +36,8 @@ class LocationTrackerService(context: Context, apiKey: String, externalId: Strin
 
             val apiWithParams =
                 "$apiMirror?altitude=${lastLocation.altitude}" +
-                        "&odometer=&" +
-                        "bearing=${lastLocation.bearing}" +
+                        "&odometer=" +
+                        "&bearing=${lastLocation.bearing}" +
                         "&lon=${lastLocation.longitude}" +
                         "&hdop=1" +
                         "&ignition=true" +
