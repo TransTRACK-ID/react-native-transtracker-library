@@ -10,19 +10,25 @@ class TranstrackerLibrary: RCTEventEmitter, CLLocationManagerDelegate {
     }
 
     let locationManager = CLLocationManager()
+    var apiKeyUser: String = "";
+    var externalIdUser: String = "";
     var imeiUser: String = "";
     var heading: Double = 0;
+    var apiMirror = "https://transtracker-test.transtrack.id/api/send-telematic?";
 
     override func supportedEvents() -> [String]! {
         return ["onLocationChanged"]
     }
 
-    @objc(initiateService:)
-    func initiateService(imei: String) {
-        // locationManager = CLLocationManager()
+    @objc(initiateService:withExternalId:withImei:)
+    func initiateService(apiKey: String, externalId: String, imei: String) {
+        
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.allowsBackgroundLocationUpdates = true
+        
+        apiKeyUser = apiKey
+        externalIdUser = externalId
         imeiUser = imei
 
         let status: CLAuthorizationStatus
@@ -68,19 +74,23 @@ class TranstrackerLibrary: RCTEventEmitter, CLLocationManagerDelegate {
         sendEvent(withName:"onLocationChanged", body:["latitude": coordinate.latitude, "longitude": coordinate.longitude, "speed": location.speed, "bearing": self.heading]);
 
         let apiWithParams =
-        "http://telematics.transtrack.id:6055?" +
-        "altitude=\(location.altitude)" +
-        "&odometer=&" +
-        "bearing=\(self.heading)" +
-        "&lon=\(coordinate.longitude)" +
-        "&id=\(self.imeiUser)" +
-        "&hdop=1" +
-        "&ignition=true" +
-        "&lat=\(coordinate.latitude)" +
-        "&speed=\(location.speed)" +
-        "&timestamp=\(Date().millisecondsSince1970)"
+            apiMirror +
+            "altitude=\(location.altitude)" +
+            "&odometer=&" +
+            "bearing=\(self.heading)" +
+            "&lon=\(coordinate.longitude)" +
+            "&id=\(self.imeiUser)" +
+            "&hdop=1" +
+            "&ignition=true" +
+            "&lat=\(coordinate.latitude)" +
+            "&speed=\(location.speed)" +
+            "&timestamp=\(Date().millisecondsSince1970)"
 
-        let url = URL(string: apiWithParams)!
+        let url = URL(apiWithParams)
+        let request = URLRequest(url: url)
+        request.setValue("X-Api-Key", forHTTPHeaderField: apiKeyUser)
+        request.setValue("X-External-Id", forHTTPHeaderField: externalIdUser)
+        request.setValue("X-Tracker-Id", forHTTPHeaderField: imeiUser)
 
 
         let task = URLSession.shared.dataTask(with: url) { data, response, error in

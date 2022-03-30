@@ -65,10 +65,6 @@ class LocationTrackerService(context: Context, apiKey: String, externalId: Strin
             ) {
               override fun getHeaders(): MutableMap<String, String> {
                 val headers = HashMap<String, String>()
-                Log.d("tag", "API Key: $apiKey");
-                Log.d("tag", "External ID: $externalId");
-                Log.d("tag", "Tracker ID: $imei");
-
                 headers["X-Api-Key"] = apiKey
                 headers["X-External-Id"] = externalId;
                 headers["X-Tracker-Id"] = imei;
