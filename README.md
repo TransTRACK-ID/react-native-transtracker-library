@@ -1,8 +1,6 @@
 # react-native-transtracker-library
 
-Tracker Library
-
-Please see the example folder for more detail.
+TransTracker Library
 
 ## Installation
 
@@ -10,6 +8,13 @@ Please see the example folder for more detail.
 npm install react-native-transtracker-library
 ```
 
+## Configuration
+We recommend you to use the react-native-permissions library to request the permission.
+
+- iOS permission you can request PERMISSIONS.IOS.LOCATION_ALWAYS
+- Android permission you can request PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION and PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION
+
+Please see the example folder for more detail.
 ## Usage
 
 ```js

@@ -1,4 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.reactnativetranstrackerlibrary">
+  xmlns:tools="http://schemas.android.com/tools"
+  package="com.reactnativetranstrackerlibrary">
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+      <application>
+        <service
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location"
+            android:name="com.reactlibrary.locationtracker.LocationTrackerService"/>
+    </application>
 
 </manifest>

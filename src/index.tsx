@@ -20,8 +20,8 @@ const TranstrackerLibrary = NativeModules.TranstrackerLibrary
 
 export const trackerEmitter = new NativeEventEmitter(TranstrackerLibrary);
 
-export function initiateService(apiKey:string, externalId:string, imei: string): void {
-  return TranstrackerLibrary.initiateService(apiKey, externalId, imei);
+export function initiateService(apiKey:string, externalId:string, trackerId: string): void {
+  return TranstrackerLibrary.initiateService(apiKey, externalId, trackerId);
 }
 
 export function startService(error: Function): void {

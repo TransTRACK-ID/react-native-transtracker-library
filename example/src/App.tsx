@@ -14,11 +14,10 @@ import { trackerEmitter, initiateService, startService, stopService } from 'reac
 export default function App() {
   const [statusLocationService, setStatusLocationService] = React.useState<string>('not initiated');
   const [location, setLocation] = React.useState();
-  
-  const randomId = Math.floor(Math.random() * 1000000);
-  const apiKey = 'eyJpdiI6Imd1UTA0WXJPOG4zZVZxY21HNEVIWEE9PSIsInZhbHVlIjoiSHQrZFVIZllmV3I0QmhLMjJBZzlaSXVhazJoSkdaaUNoaUV5YmNCQktJRkt0Ui9WUHdlZHpKa2paQTVpWmZmMSIsIm1hYyI6ImVkNTM0N2E1NDc2YzI2ZWI5NjU3ZjNjOGZmYjA2ZDI3OTVkYmU4NzA3NDRhMjdjYzU2ZGViNjBlMjY3ZTFiOWIiLCJ0YWciOiIifQ==';
-  const externalId = 'user_id' + randomId;
-  const imei = 'test' + randomId;
+
+  const apiKey = 'eyJpdiI6IkZkWnQ5UXMzZUwvTkxOTGcxbFVZekE9PSIsInZhbHVlIjoiN3UvUDdnK2gwUjlEZkVMNHFwNTQ3ZjRvMVBmclJGQTRJVUdQT2prZWllSDFtNHRnbTMzVFB2S3g1MzJIbnRaZCIsIm1hYyI6IjYwZWZkNDA4ZjkyOGI2ZmE5OGZmMDRlNDJmMWZmMDEwN2U3Zjg3NWI2NTc4OTg1ZGY4YjlhOWYxZjEyMjAzZDkiLCJ0YWciOiIifQ==';
+  const externalId = 'testing1';
+  const trackerId = 'testing1';
 
   React.useEffect(() => {
     trackerEmitter.addListener('onLocationChanged', function (e) {
@@ -42,7 +41,7 @@ export default function App() {
                   case RESULTS.GRANTED:
                     console.log('The permission is granted');
 
-                    initiateService(apiKey, externalId, imei);
+                    initiateService(apiKey, externalId, trackerId);
                     setStatusLocationService('initiated');
                     break;
                 }
@@ -56,10 +55,21 @@ export default function App() {
                     console.log('The permission is limited: some actions are possible');
                     break;
                   case RESULTS.GRANTED:
-                    console.log('The permission is granted');
+                    console.log('The permission ACCESS_FINE_LOCATION is granted');
 
-                    initiateService(apiKey, externalId, imei);
-                    setStatusLocationService('initiated');
+                    request(PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION).then((result) => {
+                      switch (result) {
+                        case RESULTS.LIMITED:
+                          console.log('The permission is limited: some actions are possible');
+                          break;
+                        case RESULTS.GRANTED:
+                          console.log('The permission ACCESS_BACKGROUND_LOCATION is granted');
+
+                          initiateService(apiKey, externalId, trackerId);
+                          setStatusLocationService('initiated');
+                          break;
+                      }
+                    });
                     break;
                 }
               });

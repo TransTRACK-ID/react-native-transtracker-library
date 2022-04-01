@@ -1,6 +1,8 @@
 package com.reactnativetranstrackerlibrary
 
+import android.content.Intent
 import android.location.Location
+import android.os.Build
 import android.util.Log
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
@@ -14,18 +16,13 @@ class TranstrackerLibraryModule(reactContext: ReactApplicationContext) : ReactCo
     private var _reactContext: ReactApplicationContext = reactContext
 
     private var location: Location? = null
-    private var locationTrackerService: LocationTrackerService? = null
 
+    private var apiKey: String? = null
+    private var externalId: String? = null
+    private var trackerId: String? = null
 
     override fun getName(): String {
         return "TranstrackerLibrary"
-    }
-
-    @ReactMethod
-    fun multiply(a: Int, b: Int, promise: Promise) {
-
-      promise.resolve(a * b)
-
     }
 
     override fun onLocationChanged(location: Location) {
@@ -49,31 +46,30 @@ class TranstrackerLibraryModule(reactContext: ReactApplicationContext) : ReactCo
 
 
     @ReactMethod
-    fun initiateService(apiKey:String, externalId:String, imei: String) {
-      if (locationTrackerService != null) {
-        Log.d(name, "Already running")
-        return
-      }
-      locationTrackerService = LocationTrackerService(_reactContext, apiKey, externalId, imei, this)
-      Log.d(name, "Initiated with name: $imei")
+    fun initiateService(apiKey:String, externalId:String, trackerId: String) {
+
+      this.apiKey = apiKey
+      this.externalId = externalId
+      this.trackerId = trackerId
+
+      Log.d(name, "Initiated with name: $trackerId")
     }
 
     @ReactMethod
     fun startService(onFailureCallback: Callback) {
-      if (locationTrackerService == null) {
-        onFailureCallback.invoke("Please initiate service first.")
-        return
-      }
-      locationTrackerService!!.startLocationUpdates()
+
+      val intent = Intent(_reactContext, LocationTrackerService::class.java)
+      intent.putExtra("apiKey", apiKey)
+      intent.putExtra("externalId", externalId)
+      intent.putExtra("trackerId", trackerId)
+
+      _reactContext.startService(intent)
     }
 
     @ReactMethod
     fun stopService(onFailureCallback: Callback) {
-      if (locationTrackerService == null) {
-        onFailureCallback.invoke("Please initiate service first.")
-        return
-      }
-      locationTrackerService!!.stopLocationUpdates()
+      val intent = Intent(_reactContext, LocationTrackerService::class.java)
+      _reactContext.stopService(intent)
     }
 
     @ReactMethod
