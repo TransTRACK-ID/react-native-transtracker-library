@@ -57,19 +57,27 @@ export default function App() {
                   case RESULTS.GRANTED:
                     console.log('The permission ACCESS_FINE_LOCATION is granted');
 
-                    request(PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION).then((result) => {
-                      switch (result) {
-                        case RESULTS.LIMITED:
-                          console.log('The permission is limited: some actions are possible');
-                          break;
-                        case RESULTS.GRANTED:
-                          console.log('The permission ACCESS_BACKGROUND_LOCATION is granted');
+                    /// Please Uncomment me
 
-                          initiateService(apiKey, externalId, trackerId);
-                          setStatusLocationService('initiated');
-                          break;
-                      }
-                    });
+                    /// FOR API Below 29
+                    // initiateService(apiKey, externalId, trackerId);
+                    // setStatusLocationService('initiated');
+
+                    /// FOR API >= 29
+                    // request(PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION).then((result) => {
+                    //   switch (result) {
+                    //     case RESULTS.LIMITED:
+                    //       console.log('The permission is limited: some actions are possible');
+                    //       break;
+                    //     case RESULTS.GRANTED:
+                    //       console.log('The permission ACCESS_BACKGROUND_LOCATION is granted');
+
+                    //       initiateService(apiKey, externalId, trackerId);
+                    //       setStatusLocationService('initiated');
+                    //       break;
+                    //   }
+                    // });
+
                     break;
                 }
               });
