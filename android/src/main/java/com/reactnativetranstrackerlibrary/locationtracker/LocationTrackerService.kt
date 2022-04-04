@@ -39,6 +39,9 @@ class LocationTrackerService : Service() {
     private lateinit var externalId: String
     private lateinit var trackerId: String
 
+    val NOTIFICATION_CHANNEL_ID = "com.reactnativetranstrackerlibrary.locationtracker"
+
+
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     super.onStartCommand(intent, flags, startId)
 
@@ -93,6 +96,7 @@ class LocationTrackerService : Service() {
           priority = LocationRequest.PRIORITY_HIGH_ACCURACY
           maxWaitTime= 100
         }
+        Log.d(tag, "Location requested")
       }
     }
 
@@ -103,9 +107,7 @@ class LocationTrackerService : Service() {
               return;
             }
 
-           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-             createNotificationChanel()
-           }
+           createNotificationChanel()
 
            locationCallback = object : LocationCallback() {
                 override fun onLocationResult(locationResult: LocationResult) {
@@ -166,6 +168,7 @@ class LocationTrackerService : Service() {
             )
 
             isServiceStarted = true;
+            Log.d(tag, "Service started")
          }
      }
 
@@ -174,33 +177,42 @@ class LocationTrackerService : Service() {
         isServiceStarted = false;
 
         stopForeground(true)
+        Log.d(tag, "Service stoped")
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChanel() {
-      val NOTIFICATION_CHANNEL_ID = "com.getlocationbackground"
       val channelName = "Background Service"
-      val chan = NotificationChannel(
-        NOTIFICATION_CHANNEL_ID,
-        channelName,
-        NotificationManager.IMPORTANCE_NONE
-      )
-      chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-
-      val manager =
-        (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-      manager.createNotificationChannel(chan)
-
       val notificationBuilder =
         NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
 
-      val notification: Notification = notificationBuilder.setOngoing(true)
-        .setContentTitle("Location Tracked")
-        .setPriority(NotificationManager.IMPORTANCE_MIN)
-        .setCategory(Notification.CATEGORY_SERVICE)
-        .build()
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val notificationChannel = NotificationChannel(
+          NOTIFICATION_CHANNEL_ID,
+          channelName,
+          NotificationManager.IMPORTANCE_NONE
+        )
+        notificationChannel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
 
-      startForeground(2, notification)
+        val manager =
+          (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+        manager.createNotificationChannel(notificationChannel)
+
+        val notification: Notification = notificationBuilder.setOngoing(true)
+          .setContentTitle("Location Tracked")
+          .setPriority(NotificationManager.IMPORTANCE_MIN)
+          .setCategory(Notification.CATEGORY_SERVICE)
+          .build()
+
+        startForeground(2, notification)
+      }else{
+        val notification: Notification = notificationBuilder.setOngoing(true)
+          .setContentTitle("Location Tracked")
+          .build()
+
+        startForeground(2, notification)
+
+      }
+      Log.d(tag, "Notification Setup for ${Build.VERSION.SDK_INT}")
     }
 
   override fun onBind(p0: Intent?): IBinder? {
