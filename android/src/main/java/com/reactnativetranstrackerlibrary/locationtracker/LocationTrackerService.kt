@@ -24,7 +24,7 @@ import java.lang.System.currentTimeMillis
 class LocationTrackerService : Service() {
 
     private var tag = "LocationService"
-    private val apiMirror = "https://transtracker-test.transtrack.id/api/send-telematic"
+    private val apiMirror = "https://transtracker.transtrack.id/api/send-telematic"
 
     private var isGrantedLocation: Boolean = false
     private var isServiceStarted: Boolean = false

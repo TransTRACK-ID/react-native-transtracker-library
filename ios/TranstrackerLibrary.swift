@@ -9,7 +9,7 @@ class TranstrackerLibrary: RCTEventEmitter, CLLocationManagerDelegate {
     var externalIdUser: String = "";
     var imeiUser: String = "";
     var heading: Double = 0;
-    var apiMirror = "https://transtracker-test.transtrack.id/api/send-telematic?";
+    var apiMirror = "https://transtracker.transtrack.id/api/send-telematic?";
 
     override func supportedEvents() -> [String]! {
         return ["onLocationChanged"]
