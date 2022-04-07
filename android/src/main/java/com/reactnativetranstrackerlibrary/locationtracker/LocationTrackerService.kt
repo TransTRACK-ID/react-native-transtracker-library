@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
@@ -29,6 +30,8 @@ class LocationTrackerService : Service() {
     private var isGrantedLocation: Boolean = false
     private var isServiceStarted: Boolean = false
 
+    private var lastLocationTime: Long = 0
+
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
@@ -42,35 +45,35 @@ class LocationTrackerService : Service() {
     val NOTIFICATION_CHANNEL_ID = "com.reactnativetranstrackerlibrary.locationtracker"
 
 
-  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    super.onStartCommand(intent, flags, startId)
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+      super.onStartCommand(intent, flags, startId)
 
-    val extras = intent!!.extras
+      val extras = intent!!.extras
 
-    if(extras != null){
-      this.apiKey = extras.getString("apiKey", "")
-      this.externalId =  extras.getString("externalId", "")
-      this.trackerId = extras.getString("trackerId", "")
+      if(extras != null){
+        this.apiKey = extras.getString("apiKey", "")
+        this.externalId =  extras.getString("externalId", "")
+        this.trackerId = extras.getString("trackerId", "")
+      }
+
+      if(apiKey.isNotEmpty() || externalId.isNotEmpty() || trackerId.isNotEmpty()) {
+        startLocationUpdates()
+      }
+
+      return (START_NOT_STICKY)
     }
 
-    if(apiKey.isNotEmpty() || externalId.isNotEmpty() || trackerId.isNotEmpty()) {
-      startLocationUpdates()
+    override fun onCreate() {
+      super.onCreate()
+
+      initialService()
     }
 
-    return (START_NOT_STICKY)
-  }
+    override fun onDestroy() {
+      super.onDestroy()
 
-  override fun onCreate() {
-    super.onCreate()
-
-    initialService()
-  }
-
-  override fun onDestroy() {
-    super.onDestroy()
-
-    stopLocationUpdates()
-  }
+      stopLocationUpdates()
+    }
 
     private fun initialService() {
       context = applicationContext
@@ -113,53 +116,56 @@ class LocationTrackerService : Service() {
                 override fun onLocationResult(locationResult: LocationResult) {
                   super.onLocationResult(locationResult)
 
-                  val lastLocation = locationResult.lastLocation
+                  if (currentTimeMillis() - lastLocationTime > 30000) {
+                    lastLocationTime = currentTimeMillis()
+                    val lastLocation = locationResult.lastLocation
 
-                  val apiWithParams =
-                    "$apiMirror?altitude=${lastLocation.altitude}" +
-                      "&odometer=" +
-                      "&bearing=${lastLocation.bearing}" +
-                      "&lon=${lastLocation.longitude}" +
-                      "&hdop=1" +
-                      "&ignition=true" +
-                      "&lat=${lastLocation.latitude}" +
-                      "&speed=${lastLocation.speed}" +
-                      "&timestamp=${currentTimeMillis()}"
+                    val apiWithParams =
+                      "$apiMirror?altitude=${lastLocation.altitude}" +
+                        "&odometer=" +
+                        "&bearing=${lastLocation.bearing}" +
+                        "&lon=${lastLocation.longitude}" +
+                        "&hdop=1" +
+                        "&ignition=true" +
+                        "&lat=${lastLocation.latitude}" +
+                        "&speed=${lastLocation.speed}" +
+                        "&timestamp=${currentTimeMillis()}"
 
-                  val stringRequest = object: StringRequest(
-                    Request.Method.POST, apiWithParams,
-                    { response ->
-                      Log.v(tag, "Response: ${response.toString()}")
-                    },
-                    { e ->
-                      if (e.networkResponse != null && e.networkResponse.data.isNotEmpty()) {
-                        try {
-                          val body = String(e.networkResponse.data)
-                          Log.e(tag, body)
-                        } catch (e: UnsupportedEncodingException) {
-                          e.printStackTrace()
+                    val stringRequest = object: StringRequest(
+                      Request.Method.POST, apiWithParams,
+                      { response ->
+                        Log.v(tag, "Response: ${response.toString()}")
+                      },
+                      { e ->
+                        if (e.networkResponse != null && e.networkResponse.data.isNotEmpty()) {
+                          try {
+                            val body = String(e.networkResponse.data)
+                            Log.e(tag, body)
+                          } catch (e: UnsupportedEncodingException) {
+                            e.printStackTrace()
+                          }
+                        }else{
+                          Log.e(tag, e.toString())
                         }
-                      }else{
-                        Log.e(tag, e.toString())
+                      },
+                    ) {
+                      override fun getHeaders(): MutableMap<String, String> {
+                        val headers = HashMap<String, String>()
+                        headers["X-Api-Key"] = apiKey
+                        headers["X-External-Id"] = externalId;
+                        headers["X-Tracker-Id"] = trackerId;
+                        return headers
                       }
-                    },
-                  ) {
-                    override fun getHeaders(): MutableMap<String, String> {
-                      val headers = HashMap<String, String>()
-                      headers["X-Api-Key"] = apiKey
-                      headers["X-External-Id"] = externalId;
-                      headers["X-Tracker-Id"] = trackerId;
-                      return headers
-                    }
-                  };
+                    };
 
-                  stringRequest.retryPolicy = DefaultRetryPolicy(
-                    5000,
-                    0,
-                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-                  )
+                    stringRequest.retryPolicy = DefaultRetryPolicy(
+                      5000,
+                      0,
+                      DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                    )
 
-                  requestQueue.add(stringRequest)
+                    requestQueue.add(stringRequest)
+                  }
                 }
             }
 

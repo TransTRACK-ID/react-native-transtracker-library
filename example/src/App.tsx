@@ -15,9 +15,9 @@ export default function App() {
   const [statusLocationService, setStatusLocationService] = React.useState<string>('not initiated');
   const [location, setLocation] = React.useState();
 
-  const apiKey = 'eyJpdiI6IkZkWnQ5UXMzZUwvTkxOTGcxbFVZekE9PSIsInZhbHVlIjoiN3UvUDdnK2gwUjlEZkVMNHFwNTQ3ZjRvMVBmclJGQTRJVUdQT2prZWllSDFtNHRnbTMzVFB2S3g1MzJIbnRaZCIsIm1hYyI6IjYwZWZkNDA4ZjkyOGI2ZmE5OGZmMDRlNDJmMWZmMDEwN2U3Zjg3NWI2NTc4OTg1ZGY4YjlhOWYxZjEyMjAzZDkiLCJ0YWciOiIifQ==';
-  const externalId = 'testing1';
-  const trackerId = 'testing1';
+  const apiKey = 'eyJpdiI6IlBmU3Y4Z010TXNpay81bzFCaVlZQ3c9PSIsInZhbHVlIjoiRG93Yk9WM1AwR2t2aWk0L3pmLy9lNzk3d1p5dmJxbFRpeDYya2FiZC9acitScGY5Vmd6ekVoV1VZL2dObzVhMiIsIm1hYyI6ImI4ZWIyNDI2YTk1YzhjNjc3MzhkZGQ5YjRmNzc4MjliZTZhOGU5YzQwNzRmNjk3MmRhOGNhMTdkNGQwNmExNTciLCJ0YWciOiIifQ==';
+  const externalId = 'example';
+  const trackerId = 'example';
 
   React.useEffect(() => {
     trackerEmitter.addListener('onLocationChanged', function (e) {
@@ -60,8 +60,8 @@ export default function App() {
                     /// Please Uncomment me
 
                     /// FOR API Below 29
-                    // initiateService(apiKey, externalId, trackerId);
-                    // setStatusLocationService('initiated');
+                    initiateService(apiKey, externalId, trackerId);
+                    setStatusLocationService('initiated');
 
                     /// FOR API >= 29
                     // request(PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION).then((result) => {
