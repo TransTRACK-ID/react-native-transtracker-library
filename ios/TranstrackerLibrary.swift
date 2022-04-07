@@ -11,6 +11,8 @@ class TranstrackerLibrary: RCTEventEmitter, CLLocationManagerDelegate {
     var heading: Double = 0;
     var apiMirror = "https://transtracker.transtrack.id/api/send-telematic?";
 
+    var lastLocationTime: Int64 = 0;
+
     override func supportedEvents() -> [String]! {
         return ["onLocationChanged"]
     }
@@ -68,44 +70,48 @@ class TranstrackerLibrary: RCTEventEmitter, CLLocationManagerDelegate {
 
         sendEvent(withName:"onLocationChanged", body:["latitude": coordinate.latitude, "longitude": coordinate.longitude, "speed": location.speed, "bearing": self.heading]);
 
-        let apiWithParams =
-            apiMirror +
-            "altitude=\(location.altitude)" +
-            "&odometer=" +
-            "&bearing=\(self.heading)" +
-            "&lon=\(coordinate.longitude)" +
-            "&id=\(self.imeiUser)" +
-            "&hdop=1" +
-            "&ignition=true" +
-            "&lat=\(coordinate.latitude)" +
-            "&speed=\(location.speed)" +
-            "&timestamp=\(Date().millisecondsSince1970)"
+        let currentMillis = Int64(Date().timeIntervalSince1970 * 1000)
+        if(currentMillis - lastLocationTime > 30000){
+            lastLocationTime = currentMillis;
+            let apiWithParams =
+                apiMirror +
+                "altitude=\(location.altitude)" +
+                "&odometer=" +
+                "&bearing=\(self.heading)" +
+                "&lon=\(coordinate.longitude)" +
+                "&id=\(self.imeiUser)" +
+                "&hdop=1" +
+                "&ignition=true" +
+                "&lat=\(coordinate.latitude)" +
+                "&speed=\(location.speed)" +
+                "&timestamp=\(Date().millisecondsSince1970)"
 
-        let url = URL(string: apiWithParams)
-        var request = URLRequest(url: url!)
-        request.httpMethod = "POST"
+            let url = URL(string: apiWithParams)
+            var request = URLRequest(url: url!)
+            request.httpMethod = "POST"
 
-        request.addValue(apiKeyUser, forHTTPHeaderField: "X-Api-Key")
-        request.addValue(externalIdUser, forHTTPHeaderField: "X-External-Id")
-        request.addValue(imeiUser, forHTTPHeaderField: "X-Tracker-Id")
+            request.addValue(apiKeyUser, forHTTPHeaderField: "X-Api-Key")
+            request.addValue(externalIdUser, forHTTPHeaderField: "X-External-Id")
+            request.addValue(imeiUser, forHTTPHeaderField: "X-Tracker-Id")
 
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data = data, error == nil else {
-                print("error=\(String(describing: error))")
-                return
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                guard let data = data, error == nil else {
+                    print("error=\(String(describing: error))")
+                    return
+                }
+
+                print("request = \(String(describing: request))")
+
+                if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
+                    print("statusCode should be 200, but is \(httpStatus.statusCode)")
+                    // print("response = \(String(describing: response))")
+                }
+
+                let responseString = String(data: data, encoding: .utf8)
+                print("responseString = \(String(describing: responseString))")
             }
-
-            print("request = \(String(describing: request))")
-
-            if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
-                print("statusCode should be 200, but is \(httpStatus.statusCode)")
-                // print("response = \(String(describing: response))")
-            }
-
-            let responseString = String(data: data, encoding: .utf8)
-            print("responseString = \(String(describing: responseString))")
+            task.resume()
         }
-        task.resume()
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateHeading heading: CLHeading) {
