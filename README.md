@@ -13,7 +13,7 @@ We recommend you to use the [react-native-permissions](https://www.npmjs.com/pac
 
 - iOS permission you can request PERMISSIONS.IOS.LOCATION_ALWAYS
 Info.plist
-```plist
+```
 <key>NSLocationAlwaysUsageDescription</key>
 <string>Needed to access location</string>
 
@@ -61,10 +61,11 @@ trackerEmitter.addListener('onLocationChanged', function (e) {
 initiateService(apiKey, externalId, trackerId);
 ```
 
-## Contributing
+## Support and feedback
+- To renew the subscription, contact our sales team at contact@transtrack.id
+- For any other info, reach our support or post and submit a feature request or a bug through our [Github issues](https://github.com/TransTRACK-ID/transtracker-library/issues).
+- See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
 
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
-
-## License
-
-MIT
+## About [TransTRACK.ID](https://www.transtrack.id)
+We are here with the aim of providing the right solutions for the telematics world in Indonesia. Different & unique cultural wealth is the main key to our solution for Indonesia.
+Since the beginning of 2019, we have been operating, we have always learned to provide solutions. In almost all regions in Indonesia our solution has been present and we are just starting this story.
