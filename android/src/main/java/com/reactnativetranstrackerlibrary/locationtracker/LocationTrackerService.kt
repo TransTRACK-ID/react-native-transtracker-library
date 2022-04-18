@@ -7,9 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
@@ -80,7 +80,6 @@ class LocationTrackerService : Service() {
 
       fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
       requestQueue = Volley.newRequestQueue(context)
-
       if (ActivityCompat.checkSelfPermission(
           context,
           Manifest.permission.ACCESS_FINE_LOCATION
@@ -120,51 +119,59 @@ class LocationTrackerService : Service() {
                     lastLocationTime = currentTimeMillis()
                     val lastLocation = locationResult.lastLocation
 
-                    val apiWithParams =
-                      "$apiMirror?altitude=${lastLocation.altitude}" +
-                        "&odometer=" +
-                        "&bearing=${lastLocation.bearing}" +
-                        "&lon=${lastLocation.longitude}" +
-                        "&hdop=1" +
-                        "&ignition=true" +
-                        "&lat=${lastLocation.latitude}" +
-                        "&speed=${lastLocation.speed}" +
-                        "&timestamp=${currentTimeMillis()}"
 
-                    val stringRequest = object: StringRequest(
-                      Request.Method.POST, apiWithParams,
-                      { response ->
-                        Log.v(tag, "Response: ${response.toString()}")
-                      },
-                      { e ->
-                        if (e.networkResponse != null && e.networkResponse.data.isNotEmpty()) {
-                          try {
-                            val body = String(e.networkResponse.data)
-                            Log.e(tag, body)
-                          } catch (e: UnsupportedEncodingException) {
-                            e.printStackTrace()
+                    var isMock: Boolean = lastLocation.isFromMockProvider()
+
+                    if(!isMock) {
+                      val apiWithParams =
+                        "$apiMirror?altitude=${lastLocation.altitude}" +
+                          "&odometer=" +
+                          "&bearing=${lastLocation.bearing}" +
+                          "&lon=${lastLocation.longitude}" +
+                          "&hdop=1" +
+                          "&ignition=true" +
+                          "&lat=${lastLocation.latitude}" +
+                          "&speed=${lastLocation.speed}" +
+                          "&timestamp=${currentTimeMillis()}"
+
+                      val stringRequest = object: StringRequest(
+                        Request.Method.POST, apiWithParams,
+                        { response ->
+                          Log.v(tag, "Response: ${response.toString()}")
+                        },
+                        { e ->
+                          if (e.networkResponse != null && e.networkResponse.data.isNotEmpty()) {
+                            try {
+                              val body = String(e.networkResponse.data)
+                              Log.e(tag, body)
+                            } catch (e: UnsupportedEncodingException) {
+                              e.printStackTrace()
+                            }
+                          }else{
+                            Log.e(tag, e.toString())
                           }
-                        }else{
-                          Log.e(tag, e.toString())
+                        },
+                      ) {
+                        override fun getHeaders(): MutableMap<String, String> {
+                          val headers = HashMap<String, String>()
+                          headers["X-Api-Key"] = apiKey
+                          headers["X-External-Id"] = externalId;
+                          headers["X-Tracker-Id"] = trackerId;
+                          return headers
                         }
-                      },
-                    ) {
-                      override fun getHeaders(): MutableMap<String, String> {
-                        val headers = HashMap<String, String>()
-                        headers["X-Api-Key"] = apiKey
-                        headers["X-External-Id"] = externalId;
-                        headers["X-Tracker-Id"] = trackerId;
-                        return headers
-                      }
-                    };
+                      };
 
-                    stringRequest.retryPolicy = DefaultRetryPolicy(
-                      5000,
-                      0,
-                      DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-                    )
+                      stringRequest.retryPolicy = DefaultRetryPolicy(
+                        5000,
+                        0,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                      )
 
-                    requestQueue.add(stringRequest)
+                      requestQueue.add(stringRequest)
+                    }
+                    else{
+                      Log.d(tag, "Mock location is detected")
+                    }
                   }
                 }
             }
