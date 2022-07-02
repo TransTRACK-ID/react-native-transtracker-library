@@ -5,8 +5,11 @@ import {
   View,
   Button,
   Text,
-  Platform
+  TextInput,
+  Platform,
 } from 'react-native';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {request, RESULTS, PERMISSIONS} from 'react-native-permissions';
 import { trackerEmitter, initiateService, startService, stopService } from 'react-native-transtracker-library';
@@ -14,20 +17,44 @@ import { trackerEmitter, initiateService, startService, stopService } from 'reac
 export default function App() {
   const [statusLocationService, setStatusLocationService] = React.useState<string>('not initiated');
   const [location, setLocation] = React.useState();
+  const [trackerId, setTrackerId] = React.useState('example');
 
-  const apiKey = 'eyJpdiI6IlBmU3Y4Z010TXNpay81bzFCaVlZQ3c9PSIsInZhbHVlIjoiRG93Yk9WM1AwR2t2aWk0L3pmLy9lNzk3d1p5dmJxbFRpeDYya2FiZC9acitScGY5Vmd6ekVoV1VZL2dObzVhMiIsIm1hYyI6ImI4ZWIyNDI2YTk1YzhjNjc3MzhkZGQ5YjRmNzc4MjliZTZhOGU5YzQwNzRmNjk3MmRhOGNhMTdkNGQwNmExNTciLCJ0YWciOiIifQ==';
-  const externalId = 'example';
-  const trackerId = 'example';
+  const apiKey = 'eyJpdiI6Im9WbEpmT2ZlVlU2bldVQWEvZ3c1Z1E9PSIsInZhbHVlIjoidUZ0Q1BINXp6czBvZ2s3WjliM05DbzVtWWZOcDFuam81M2FJcytTTitIQTJEdzRnMTdHTVRZYnhJMElpM3RQTSIsIm1hYyI6ImQyMTQxZGY4MDgyNTRhMzYzZGI4MjdmZDMxYzI0NWQ1OTUwZTE1MTAxOGRmYzdkYzAzODE2MTIyYWZmYWJmZTMiLCJ0YWciOiIifQ==';
 
   React.useEffect(() => {
     trackerEmitter.addListener('onLocationChanged', function (e) {
       console.log(e);
       setLocation(e);
     });
+
+    // get access to the tracker id
+    AsyncStorage.getItem('TRACKERID', (err, result) => {
+      if (result) {
+        setTrackerId(result);
+      }
+    });
   }, []);
 
   return (
     <View style={styles.container}>
+      <TextInput
+        style={{ height: 40, borderColor: 'gray', borderWidth: 1 }}
+        value={trackerId}
+        onChangeText={text => {
+          try {
+            setTrackerId(text)
+
+            AsyncStorage.setItem(
+              'TRACKERID',
+              text,
+            );
+          } catch (error) {
+            console.log(error);
+          }
+        }}
+        placeholder="Set Tracker ID"
+      />
+      <View style={{padding:10}}></View>
       <Button
         title={statusLocationService}
         onPress={ () => {
@@ -41,8 +68,17 @@ export default function App() {
                   case RESULTS.GRANTED:
                     console.log('The permission is granted');
 
-                    initiateService(apiKey, externalId, trackerId);
-                    setStatusLocationService('initiated');
+                    initiateService(apiKey, trackerId, trackerId);
+                    let state = 'initiated';
+                    setStatusLocationService(state);
+                    try {
+                      AsyncStorage.setItem(
+                        'STATE',
+                        state,
+                      );
+                    } catch (error) {
+                      console.log(error);
+                    }
                     break;
                 }
               });
@@ -60,8 +96,9 @@ export default function App() {
                     /// Please Uncomment me
 
                     /// FOR API Below 29
-                    initiateService(apiKey, externalId, trackerId);
-                    setStatusLocationService('initiated');
+                    initiateService(apiKey, trackerId, trackerId);
+                    let state = 'initiated';
+                    setStatusLocationService(state);
 
                     /// FOR API >= 29
                     // request(PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION).then((result) => {
@@ -86,17 +123,20 @@ export default function App() {
             startService((err: any, data: any) => {
               console.log(err, data);
             });
-            setStatusLocationService('started');
+            let state = 'started';
+            setStatusLocationService(state);
           } else if (statusLocationService === 'started') {
             stopService((err: any, data: any) => {
               console.log(err, data);
             });
-            setStatusLocationService('stopped');
-          } else if (statusLocationService === 'stopped') {
+            let state = 'stoped';
+            setStatusLocationService(state);
+          } else if (statusLocationService === 'stoped') {
             startService((err: any, data: any) => {
               console.log(err, data);
             });
-            setStatusLocationService('started');
+            let state = 'started';
+            setStatusLocationService(state);
           }
         }}
       />
